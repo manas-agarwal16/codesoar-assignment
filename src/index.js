@@ -1,9 +1,10 @@
 import 'dotenv/config';
-import {connectDB} from './db/connectDB.js';
+import { connectDB } from './db/connectDB.js';
 import express from 'express';
-import Routes from './route.js'
+import Routes from './route.js';
 
 const app = express();
+
 const port = process.env.PORT;
 
 (async () => {
@@ -11,7 +12,10 @@ const port = process.env.PORT;
       // connect to the database.
       await connectDB();
 
-      app.use('/' , Routes);
+      app.use(express.json());
+      app.use(express.urlencoded({ extended: true }));
+      app.use(express.static('public'));
+      app.use('/', Routes);
 
       // Listen server on the port once database is connected successfully
       app.listen(port, () => {
@@ -22,4 +26,4 @@ const port = process.env.PORT;
    }
 })();
 
-export {app};
+export { app };

@@ -1,4 +1,5 @@
 import { DataTypes } from 'sequelize';
+import bcrypt from 'bcrypt';
 
 const UserModel = (sequelize) => {
    const User = sequelize.define(
@@ -34,12 +35,29 @@ const UserModel = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
          },
+         isVerified: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+         },
+         verificationCode: {
+            type: DataTypes.STRING,
+            allowNull: true,
+         },
       },
       {
          sequelize, // pass the sequelize instance
          modelName: 'User', // pass the model name
       }
    );
+
+   User.beforeCreate(async (user) => {
+      user.password = await bcrypt.hash(user.password, 8);
+   });
+
+   User.prototype.validPassword = async function (inputPassword) {
+      return await bcrypt.compare(inputPassword, this.password);
+   };
+
    return User;
 };
 

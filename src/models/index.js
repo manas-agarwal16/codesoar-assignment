@@ -30,4 +30,4 @@ Contact.belongsTo(User, {
    as: 'user',
 });
 
-export { sequelize };
+export { sequelize , User , Contact };
