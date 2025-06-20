@@ -35,11 +35,7 @@ const UserModel = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
          },
-         isVerified: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false,
-         },
-         verificationCode: {
+         refreshToken : {
             type: DataTypes.STRING,
             allowNull: true,
          },

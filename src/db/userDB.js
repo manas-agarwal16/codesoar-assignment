@@ -1,7 +1,6 @@
-import { User } from '../models/index.js';
+import { Spam, User, Contact } from '../models/index.js';
 
 const db = {
-   
    checkUserPhoneExists: async (phoneNumber) => {
       try {
          const user = await User.findOne({
@@ -12,19 +11,17 @@ const db = {
          return user;
       } catch (error) {
          console.log(`Error searching user with phone number : ${error}`);
+         return error;
       }
    },
 
-   registerUser: async (name, phoneNumber, email, password, verificationCode) => {
+   registerUser: async (name, phoneNumber, email, password) => {
       try {
-
          const user = await User.create({
-            fullName : name,
+            fullName: name,
             phoneNumber,
             email,
             password,
-            verificationCode,
-            isVerified : false, // Initially set to false
          });
 
          return user;
@@ -34,33 +31,7 @@ const db = {
       }
    },
 
-   verifyRegisteredUser: async (phoneNumber, verificationCode) => {
-      try {
-         
-         const user = await User.findOne({
-            where: {
-               phoneNumber,
-               verificationCode,
-            },
-         });
-
-         if (!user) {
-            throw new Error('Invalid phone number or verification code');
-         }
-
-         user.isVerified = true; // Set isVerified to true
-         user.verificationCode = null; // Clear the verification code
-         await user.save();
-
-         return user;
-
-      } catch (error) {
-         console.error(`Error verifying user ${error}`); 
-         return error;
-      }
-   },
-
-   loginUser : async (phoneNumber, password) => {
+   verifyPassword: async (phoneNumber, password) => {
       try {
          const user = await User.findOne({
             where: {
@@ -69,12 +40,12 @@ const db = {
          });
 
          if (!user) {
-            throw new Error('User not found');
+            return null;
          }
 
          const isPasswordValid = await user.validPassword(password);
          if (!isPasswordValid) {
-            throw new Error('Invalid password');
+            return null;
          }
 
          return user;
@@ -84,6 +55,163 @@ const db = {
       }
    },
 
+   isReportedSpam: async (userId, contactNumber) => {
+      try {
+         const spam = await Spam.count({
+            where: {
+               userId,
+               contactNumber,
+            },
+         });
+         return spam > 0;
+      } catch (error) {
+         console.error(`Error checking spam report ${error}`);
+         return error;
+      }
+   },
+
+   reportSpam: async (userId, contactNumber) => {
+      try {
+         await Spam.create({
+            userId,
+            contactNumber,
+         });
+      } catch (error) {
+         console.error(`Error reporting spam ${error}`);
+         return error;
+      }
+   },
+
+   searchByName: async (name, userId) => {
+      try {
+         // search registered users starting with the name
+         const searchRegisteredUsersStartingWithName = await User.findAll({
+            where: {
+               fullName: {
+                  [Op.isLike]: `${name}%`,
+               },
+            },
+            attributes: ['id', 'fullName', 'phoneNumber'],
+         });
+
+         // search registered users containing the name and excluding already found users
+         const searchRegisteredUsersContainingName = await User.findAll({
+            where: {
+               fullName: {
+                  [Op.isLike]: `%${name}%`,
+               },
+               id: {
+                  [Op.notIn]: searchRegisteredUsersStartingWithName.map(
+                     (user) => user.id
+                  ),
+               },
+            },
+            attributes: ['id', 'fullName', 'phoneNumber'],
+         });
+
+         // Combine both lists of registered users
+         const usersList = [
+            ...searchRegisteredUsersStartingWithName,
+            ...searchRegisteredUsersContainingName,
+         ];
+
+         // count total registered users to calculate spam likelihood
+         const totalRegisteredUsers = await User.count();
+
+         // spam likelihood check
+         usersList = await Promise.all(
+            usersList.map(async (user) => {
+               const spamCount = await Spam.count({
+                  where: {
+                     spamNumber: user.phoneNumber,
+                  },
+               });
+
+               // calculate spam likelihood using percentage formula
+               user.spamLikelihood = (spamCount / totalRegisteredUsers) * 100;
+
+               return user;
+            })
+         );
+
+         return usersList;
+      } catch (error) {
+         console.error(`Error searching users by name ${error}`);
+         return error;
+      }
+   },
+
+   searchByNumber: async (phoneNumber, searchingUserPhoneNumber) => {
+      try {
+         // check if any user with the phone number is registered
+         const registeredUser = await User.findOne({
+            where: {
+               phoneNumber,
+            },
+            attributes: ['id', 'fullName', 'phoneNumber', 'email'],
+         });
+
+         // count total registered users to calculate spam likelihood
+         const totalRegisteredUsers = await User.count();
+
+         // calculate total spam count for the phone number
+         const spamCount = await Spam.count({
+            where: {
+               spamNumber: phoneNumber,
+            },
+         });
+
+         // calculate spam likelihood using percentage formula
+         const spamLikelihood = (spamCount / totalRegisteredUsers) * 100;
+
+         // if user is registered, check if the registered user has the searching user as contact
+         if (registeredUser) {
+            
+            registeredUser.spamLikelihood = spamLikelihood; // Add spam likelihood to the registered user
+
+            const isContact = await Contact.findOne({
+               where: {
+                  userId: registeredUser.id,
+                  contactNumber: searchingUserPhoneNumber,
+               },
+            });
+
+            // If the registered user has the searching user as contact, then set the email
+            if (isContact) {
+               registeredUser.email = registeredUser.email;
+            } else {
+               registeredUser.email = null; // If not a contact, set email to null
+            }
+
+            return [registeredUser]; // Return as an array for consistency
+         }
+
+         // if user is not registered, check users with the phone number in contact db.
+         const users = await Contact.findAll({
+            where: {
+               phoneNumber,
+            },
+         });
+
+         // data format users details.
+         const usersDetails = await Promise.all(
+            users.map(async (user) => {
+               return {
+                  fullName : user.contactName,
+                  phoneNumber,
+                  email: null, // Only registered users have email
+                  spamLikelihood, // Add spam likelihood to the contact user
+               }
+            })
+         );
+
+         // return users details with spam likelihood
+         return usersDetails;
+      } catch (error) {
+         console.error(`Error searching users by number ${error}`);
+         return error;
+      }
+   },
 };
 
 export default db;

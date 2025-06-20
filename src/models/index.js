@@ -16,9 +16,11 @@ const sequelize = new Sequelize(DATABASE_URL, {
 
 import { UserModel } from './users.js';
 import { ContactModel } from './contacts.js';
+import { SpamModel } from './spams.js';
 
 const User = UserModel(sequelize);
 const Contact = ContactModel(sequelize);
+const Spam = SpamModel(sequelize);
 
 User.hasMany(Contact, {
    foreignKey: 'userId',
@@ -30,4 +32,14 @@ Contact.belongsTo(User, {
    as: 'user',
 });
 
-export { sequelize , User , Contact };
+User.hasMany(Spam, {
+   foreignKey: 'userId',
+   as: 'spams',
+});
+
+Spam.belongsTo(User, {
+   foreignKey: 'userId',
+   as: 'user',
+});
+
+export { sequelize , User , Contact , Spam };
