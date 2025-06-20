@@ -60,7 +60,7 @@ const db = {
          const spam = await Spam.count({
             where: {
                userId,
-               contactNumber,
+               spamNumber: contactNumber,
             },
          });
          return spam > 0;
@@ -74,7 +74,7 @@ const db = {
       try {
          await Spam.create({
             userId,
-            contactNumber,
+            spamNumber: contactNumber,
          });
       } catch (error) {
          console.error(`Error reporting spam ${error}`);

@@ -29,9 +29,7 @@ const emptyDb = asyncHandler(async (req, res) => {
 const register = asyncHandler(async (req, res) => {
    try {
       const { name, phoneNumber, email, password } = req.body;
-      console.log('name', name);
-      console.log('phoneNumber', phoneNumber);
-
+      
       const userPhoneExists = await db.checkUserPhoneExists(phoneNumber);
 
       if (userPhoneExists) {

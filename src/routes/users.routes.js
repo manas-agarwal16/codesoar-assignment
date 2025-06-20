@@ -1,16 +1,51 @@
-import express from "express";
-import { verifyJWT } from "../middlewares/verifyJWT.js";
+import express from 'express';
+import { verifyJWT } from '../middlewares/verifyJWT.js';
+import validateRequestParams from '../utils/validateRequestParams.js';
+import validationRules from '../utils/validationRules.js';
 const router = express.Router();
 
-import { emptyDb, login, register, reportSpam, searchByName, searchByNumber } from "../controllers/users.controllers.js";
+import {
+   emptyDb,
+   login,
+   register,
+   reportSpam,
+   searchByName,
+   searchByNumber,
+} from '../controllers/users.controllers.js';
 
 router.delete('/emptydb', emptyDb);
 
-router.post('/register' , register);
-router.post('/login', login);
-router.post('/report-spam', verifyJWT, reportSpam);
-router.get('/search-by-name', verifyJWT, searchByName);
-router.get('/search-by-number', verifyJWT, searchByNumber);
+// route to register a user
+router.post(
+   '/register',
+   validateRequestParams(validationRules.register),
+   register
+);
+// route to login a user
+router.post('/login', validateRequestParams(validationRules.login), login);
 
+// route to report a spam number
+router.post(
+   '/report-spam',
+   validateRequestParams(validationRules.reportSpam),
+   verifyJWT,
+   reportSpam
+);
+
+// route to search users by name
+router.get(
+   '/search-by-name',
+   validateRequestParams(validationRules.searchByName),
+   verifyJWT,
+   searchByName
+);
+
+// route to search users by phone number
+router.get(
+   '/search-by-number',
+   validateRequestParams(validationRules.searchByNumber),
+   verifyJWT,
+   searchByNumber
+);
 
 export default router;
