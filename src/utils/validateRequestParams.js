@@ -4,8 +4,8 @@ const validateRequestParams = (paramRules) => {
       const errors = [];
 
       for (const [key, param] of Object.entries(paramRules)) {
-         let value = req.body[key] || req.query[key];
-
+         let value = req.body?.[key] || req.query?.[key];
+         
          // Required check
          if (param.isRequired && (value === undefined || value === null || value === '')) {
             errors.push({ message: `${key} is required.` });
@@ -33,7 +33,7 @@ const validateRequestParams = (paramRules) => {
 
          // Phone validation
          if (param.isValidPhone) {
-            const phoneRegex = /^[6-9]\d{9}$/; // For Indian numbers
+            const phoneRegex = /^\d{10}$/; // Regex for 10-digit phone number
             if (!phoneRegex.test(value)) {
                errors.push({ message: `${key} must be a valid 10-digit phone number.` });
                continue;
@@ -41,8 +41,8 @@ const validateRequestParams = (paramRules) => {
          }
 
          // Replace value in req
-         if (req.body[key] !== undefined) req.body[key] = value;
-         if (req.query[key] !== undefined) req.query[key] = value;
+         if (req.body?.[key] !== undefined) req.body[key] = value;
+         if (req.query?.[key] !== undefined) req.query[key] = value;
       }
 
       if (errors.length) {

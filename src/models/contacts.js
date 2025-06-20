@@ -11,7 +11,7 @@ const ContactModel = (sequelize) => {
          type: DataTypes.INTEGER,
          allowNull: false,
          references: {
-            model: 'Users', // correct only if table name is Users
+            model: 'Users',
             key: 'id',
          },
       },

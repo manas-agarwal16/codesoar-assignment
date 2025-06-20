@@ -3,8 +3,6 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import db from '../db/userDB.js';
 import { User } from '../models/index.js';
 import { ApiError } from '../utils/apiError.js';
-import { sendSMS } from '../utils/sendSMS.js';
-import { verificationCodeGenerator } from '../utils/verificationCodeGenerator.js';
 import {
    generateAccessToken,
    generateRefreshToken,
@@ -57,24 +55,22 @@ const register = asyncHandler(async (req, res) => {
          );
    } catch (error) {
       console.error(`Error registering user ${error}`);
+      return res.status(500).json(new ApiError(500, 'Internal Server Error'));
    }
 });
 
 // Function to login user
 const login = asyncHandler(async (req, res) => {
    try {
-      const { phoneNumber, password } = req.body;
+      const { phoneNumber, password } = req.body
 
       const user = await db.verifyPassword(phoneNumber, password);
       if (!user) {
-         return new ApiError(401, 'Invalid phone number or password');
+         return res.status(401).json(new ApiError(401, 'Incorrect Password or phone number not registered yet'));
       }
 
       const accessToken = await generateAccessToken(user);
       const refreshToken = await generateRefreshToken(user);
-
-      console.log(`Access Token: ${accessToken}`);
-      console.log(`Refresh Token: ${refreshToken}`);
 
       await User.update({ refreshToken }, { where: { id: user.id } });
 
@@ -92,38 +88,48 @@ const login = asyncHandler(async (req, res) => {
          .json(
             new ApiResponse(
                201,
-               { loginStatus: true, playerData: player },
-               'Logged in successfully'
+               {},
+               'user logged in successfully'
             )
          );
-   } catch (error) {}
+   } catch (error) {
+      console.error(`Error logging in user ${error}`);
+      return res.status(500).json(new ApiError(500, 'Internal Server Error'));
+   }
 });
 
 // Function to report a spam number
 const reportSpam = asyncHandler(async (req, res) => {
-   const { phoneNumber } = req.body;
-   const userId = req.user.id;
+   try {
 
-   // check if user had reported this number as spam before
-   const isSpamReported = await db.isReportedSpam(userId, phoneNumber);
-
-   // return error if user had reported this number as spam before
-   if( isSpamReported) {
-      return res.status(409).json(new ApiError(409, 'You have already reported this number as spam'));
+      // extract phone number from request body and user id from req.user
+      const { phoneNumber } = req.body;
+      const userId = req.user.id;
+   
+      // check if user has already reported this number as spam
+      const isSpamReported = await db.isReportedSpam(userId, phoneNumber);
+   
+      // return error if user had reported this number as spam before
+      if( isSpamReported) {
+         return res.status(409).json(new ApiError(409, 'You have already reported this number as spam'));
+      }
+   
+      // mark the number as spam in the database
+      await db.reportSpam(userId, phoneNumber);
+   
+      // return success response
+      return res.status(200).json(new ApiResponse(200, [], 'Spam reported successfully'));
+   } catch (error) {
+      console.error(`Error reporting spam ${error}`);
+      return res.status(500).json(new ApiError(500, 'Internal Server Error'));
    }
-
-   // mark the number as spam in the database
-   await db.reportSpam(userId, phoneNumber);
-
-   // return success response
-   return res.status(200).json(new ApiResponse(200, [], 'Spam reported successfully'));
 });
 
 // Function to search users by name
 const searchByName = asyncHandler(async (req , res) => {
    try {
       const {name} = req.query;
-      const {id , phoneNumber} = req.user;
+      const {id , phoneNumber} = req.user;      
    
       const users = await db.searchByName(name, id);
    

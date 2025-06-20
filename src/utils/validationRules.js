@@ -12,7 +12,7 @@ const validationRules = {
    },
 
     reportSpam: {
-        spamNumber: { isRequired: true, isTrim: true, isValidPhone: true },
+        phoneNumber: { isRequired: true, isTrim: true, isValidPhone: true },
     },
 
     searchByName: {

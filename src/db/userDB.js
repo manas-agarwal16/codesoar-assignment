@@ -1,4 +1,5 @@
 import { Spam, User, Contact } from '../models/index.js';
+import { Op } from 'sequelize';
 
 const db = {
    checkUserPhoneExists: async (phoneNumber) => {
@@ -10,7 +11,7 @@ const db = {
          });
          return user;
       } catch (error) {
-         console.log(`Error searching user with phone number : ${error}`);
+         console.error(`Error searching user with phone number : ${error}`);
          return error;
       }
    },
@@ -18,7 +19,7 @@ const db = {
    registerUser: async (name, phoneNumber, email, password) => {
       try {
          const user = await User.create({
-            fullName: name,
+            name: name,
             phoneNumber,
             email,
             password,
@@ -26,7 +27,7 @@ const db = {
 
          return user;
       } catch (error) {
-         console.log(`Error in registering user ${error}`);
+         console.error(`Error in registering user ${error}`);
          return error;
       }
    },
@@ -55,12 +56,12 @@ const db = {
       }
    },
 
-   isReportedSpam: async (userId, contactNumber) => {
+   isReportedSpam: async (userId, phoneNumber) => {
       try {
          const spam = await Spam.count({
             where: {
                userId,
-               spamNumber: contactNumber,
+               spamNumber: phoneNumber,
             },
          });
          return spam > 0;
@@ -70,12 +71,13 @@ const db = {
       }
    },
 
-   reportSpam: async (userId, contactNumber) => {
+   reportSpam: async (userId, phoneNumber) => {
       try {
          await Spam.create({
             userId,
-            spamNumber: contactNumber,
+            spamNumber: phoneNumber,
          });
+         return true;
       } catch (error) {
          console.error(`Error reporting spam ${error}`);
          return error;
@@ -87,18 +89,18 @@ const db = {
          // search registered users starting with the name
          const searchRegisteredUsersStartingWithName = await User.findAll({
             where: {
-               fullName: {
-                  [Op.isLike]: `${name}%`,
+               name: {
+                  [Op.iLike]: `${name}%`,
                },
             },
-            attributes: ['id', 'fullName', 'phoneNumber'],
+            attributes: ['id', 'name', 'phoneNumber'],
          });
 
          // search registered users containing the name and excluding already found users
          const searchRegisteredUsersContainingName = await User.findAll({
             where: {
-               fullName: {
-                  [Op.isLike]: `%${name}%`,
+               name: {
+                  [Op.iLike]: `%${name}%`,
                },
                id: {
                   [Op.notIn]: searchRegisteredUsersStartingWithName.map(
@@ -106,11 +108,11 @@ const db = {
                   ),
                },
             },
-            attributes: ['id', 'fullName', 'phoneNumber'],
+            attributes: ['id', 'name', 'phoneNumber'],
          });
 
          // Combine both lists of registered users
-         const usersList = [
+         let usersList = [
             ...searchRegisteredUsersStartingWithName,
             ...searchRegisteredUsersContainingName,
          ];
@@ -125,10 +127,10 @@ const db = {
                   where: {
                      spamNumber: user.phoneNumber,
                   },
-               });
+               });               
 
                // calculate spam likelihood using percentage formula
-               user.spamLikelihood = (spamCount / totalRegisteredUsers) * 100;
+               user.dataValues.spamLikelihood = (((spamCount / totalRegisteredUsers) * 100).toFixed(2)).toString() + '%';
 
                return user;
             })
@@ -143,12 +145,13 @@ const db = {
 
    searchByNumber: async (phoneNumber, searchingUserPhoneNumber) => {
       try {
+         
          // check if any user with the phone number is registered
          const registeredUser = await User.findOne({
             where: {
                phoneNumber,
             },
-            attributes: ['id', 'fullName', 'phoneNumber', 'email'],
+            attributes: ['id', 'name', 'phoneNumber', 'email'],
          });
 
          // count total registered users to calculate spam likelihood
@@ -162,12 +165,12 @@ const db = {
          });
 
          // calculate spam likelihood using percentage formula
-         const spamLikelihood = (spamCount / totalRegisteredUsers) * 100;
+         const spamLikelihood = (((spamCount / totalRegisteredUsers) * 100).toFixed(2)).toString() + '%';
 
          // if user is registered, check if the registered user has the searching user as contact
          if (registeredUser) {
             
-            registeredUser.spamLikelihood = spamLikelihood; // Add spam likelihood to the registered user
+            registeredUser.dataValues.spamLikelihood = spamLikelihood; // Add spam likelihood to the registered user
 
             const isContact = await Contact.findOne({
                where: {
@@ -189,7 +192,7 @@ const db = {
          // if user is not registered, check users with the phone number in contact db.
          const users = await Contact.findAll({
             where: {
-               phoneNumber,
+               contactNumber : phoneNumber,
             },
          });
 
@@ -197,7 +200,7 @@ const db = {
          const usersDetails = await Promise.all(
             users.map(async (user) => {
                return {
-                  fullName : user.contactName,
+                  name : user.contactName,
                   phoneNumber,
                   email: null, // Only registered users have email
                   spamLikelihood, // Add spam likelihood to the contact user

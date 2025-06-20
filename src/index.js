@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import { connectDB } from './db/connectDB.js';
 import express from 'express';
-import Routes from './route.js';
+import cookieParser from 'cookie-parser';
+import Routes from "./routes/users.routes.js";
 
 const app = express();
 
@@ -15,6 +16,8 @@ const port = process.env.PORT;
       app.use(express.json());
       app.use(express.urlencoded({ extended: true }));
       app.use(express.static('.'));
+      app.use(cookieParser());
+
       app.use('/', Routes);
 
       // Listen server on the port once database is connected successfully
