@@ -2,11 +2,9 @@ import { Spam, User, Contact } from '../models/index.js';
 import { Op } from 'sequelize';
 
 const db = {
-
    // function to check if phone number is already registered in the database
    checkUserPhoneExists: async (phoneNumber) => {
       try {
-
          // check if user with the phone number exists in the database
          const user = await User.findOne({
             where: {
@@ -25,7 +23,6 @@ const db = {
    // function to register a user in the database
    registerUser: async (name, phoneNumber, email, password) => {
       try {
-
          // register user in the database
          const user = await User.create({
             name: name,
@@ -45,7 +42,6 @@ const db = {
    // function to verify user password and return user details
    verifyPassword: async (phoneNumber, password) => {
       try {
-
          // check if user with the phone number exists in the database
          const user = await User.findOne({
             where: {
@@ -76,7 +72,6 @@ const db = {
    // function to check if a user has reported a spam number in the database
    isReportedSpam: async (userId, phoneNumber) => {
       try {
-
          // check if the user has reported the phone number as spam
          const spam = await Spam.count({
             where: {
@@ -96,7 +91,6 @@ const db = {
    // function to report a spam number in the database
    reportSpam: async (userId, phoneNumber) => {
       try {
-
          // mark the phone number as spam in the database by userId
          await Spam.create({
             userId,
@@ -153,10 +147,13 @@ const db = {
                   where: {
                      spamNumber: user.phoneNumber,
                   },
-               });               
+               });
 
                // calculate spam likelihood using percentage formula
-               user.dataValues.spamLikelihood = (((spamCount / totalRegisteredUsers) * 100).toFixed(2)).toString() + '%';
+               user.dataValues.spamLikelihood =
+                  ((spamCount / totalRegisteredUsers) * 100)
+                     .toFixed(2)
+                     .toString() + '%';
 
                return user;
             })
@@ -172,7 +169,6 @@ const db = {
    // function to search users by phone number in the database
    searchByNumber: async (phoneNumber, searchingUserPhoneNumber) => {
       try {
-         
          // check if any user with the phone number is registered
          const registeredUser = await User.findOne({
             where: {
@@ -192,11 +188,12 @@ const db = {
          });
 
          // calculate spam likelihood using percentage formula
-         const spamLikelihood = (((spamCount / totalRegisteredUsers) * 100).toFixed(2)).toString() + '%';
+         const spamLikelihood =
+            ((spamCount / totalRegisteredUsers) * 100).toFixed(2).toString() +
+            '%';
 
          // if user is registered, check if the registered user has the searching user as contact
          if (registeredUser) {
-            
             registeredUser.dataValues.spamLikelihood = spamLikelihood; // Add spam likelihood to the registered user
 
             const isContact = await Contact.findOne({
@@ -219,7 +216,7 @@ const db = {
          // if user is not registered, check users with the phone number in contact db.
          const users = await Contact.findAll({
             where: {
-               contactNumber : phoneNumber,
+               contactNumber: phoneNumber,
             },
          });
 
@@ -227,11 +224,11 @@ const db = {
          const usersDetails = await Promise.all(
             users.map(async (user) => {
                return {
-                  name : user.contactName,
+                  name: user.contactName,
                   phoneNumber,
                   email: null, // Only registered users have email
                   spamLikelihood, // Add spam likelihood to the contact user
-               }
+               };
             })
          );
 
