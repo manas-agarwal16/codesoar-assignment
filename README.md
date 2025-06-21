@@ -180,6 +180,6 @@ CORS_ORIGIN=''
 npm start
 ```
 
-📞 Contact
-Email : manas.agarwal1604@gmail.com
-phone : 8279653442
+### 📞 Contact
+** Email **: manas.agarwal1604@gmail.com
+** phone **: 8279653442
