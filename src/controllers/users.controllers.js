@@ -40,7 +40,7 @@ const register = asyncHandler(async (req, res) => {
             new ApiResponse(
                201,
                [],
-               'User registered successfully. Please verify your phone number.'
+               'User registered successfully.'
             )
          );
    } catch (error) {

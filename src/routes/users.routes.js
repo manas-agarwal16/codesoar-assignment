@@ -12,6 +12,14 @@ import {
    searchByNumber,
 } from '../controllers/users.controllers.js';
 
+// route to get the welcome message
+router.get('/', (req, res) => {
+   res.status(200).json({
+      message:
+         'Hello CodeSoar Technology! This backend service is implemented by Manas Agarwal as part of the assignment. It demonstrates user registration, login, spam reporting, and search features.',
+   });
+});
+
 // route to register a user
 router.post(
    '/register',
