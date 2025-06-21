@@ -4,7 +4,7 @@ This repository contains the backend implementation for an assignment given by C
 
 ## 🌐 Hosted URL
 
-Base URL: [https://codesoar-assignment.onrender.com](https://codesoar-assignment-6my3.onrender.com)
+Base URL: [https://codesoar-assignment-6my3.onrender.com](https://codesoar-assignment-6my3.onrender.com)
 
 ## ⚙️ Tech Stack
 
