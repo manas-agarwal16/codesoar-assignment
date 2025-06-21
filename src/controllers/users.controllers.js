@@ -8,28 +8,17 @@ import {
    generateRefreshToken,
 } from '../utils/tokenGenerator.js';
 
-const emptyDb = asyncHandler(async (req, res) => {
-   try {
-      // Clear the database
-      await User.destroy({
-         where: {},
-         cascade: true,
-      });
-
-      return res.status(200).json(new ApiResponse(200, [], 'Database cleared'));
-   } catch (error) {
-      console.error(`Error clearing database: ${error}`);
-      return res.status(500).json(new ApiError(500, 'Internal Server Error'));
-   }
-});
-
 // Function to register a new user
 const register = asyncHandler(async (req, res) => {
    try {
+
+      // take user details from request body
       const { name, phoneNumber, email, password } = req.body;
       
+      // check if phone number is already registered
       const userPhoneExists = await db.checkUserPhoneExists(phoneNumber);
 
+      // if phone number already exists, return error
       if (userPhoneExists) {
          return res
             .status(409)
@@ -44,6 +33,7 @@ const register = asyncHandler(async (req, res) => {
          password,
       );
 
+      // Return success response
       return res
          .status(201)
          .json(
@@ -62,16 +52,24 @@ const register = asyncHandler(async (req, res) => {
 // Function to login user
 const login = asyncHandler(async (req, res) => {
    try {
+
+      // extract phone number and password from request body
       const { phoneNumber, password } = req.body
 
+      // check if phone number is registered and also verify password
       const user = await db.verifyPassword(phoneNumber, password);
+
+
+      // if user is not found or password is incorrect, return error
       if (!user) {
          return res.status(401).json(new ApiError(401, 'Incorrect Password or phone number not registered yet'));
       }
 
+      // generate access and refresh tokens
       const accessToken = await generateAccessToken(user);
       const refreshToken = await generateRefreshToken(user);
 
+      // update the user's refresh token in the database
       await User.update({ refreshToken }, { where: { id: user.id } });
 
       const options = {
@@ -81,6 +79,7 @@ const login = asyncHandler(async (req, res) => {
          maxAge: 24 * 60 * 1000, //1d
       };
 
+      // return success response with access and refresh tokens in cookies
       return res
          .status(200)
          .cookie('accessToken', accessToken, options)
@@ -128,15 +127,19 @@ const reportSpam = asyncHandler(async (req, res) => {
 // Function to search users by name
 const searchByName = asyncHandler(async (req , res) => {
    try {
+      // extract name from query parameters and user id from req.user
       const {name} = req.query;
       const {id , phoneNumber} = req.user;      
    
+      // search by name in the database, first users starting with the given name and then users containing the given name
       const users = await db.searchByName(name, id);
    
+      // if no users found, return error
       if (!users || users.length === 0) {
          return res.status(404).json(new ApiError(404, 'No users found'));
       }
       
+      // return success response with the found users
       return res.status(200).json(new ApiResponse(200, users, 'Users found successfully'));
    } catch (error) {
       console.error(`Error searching users by name ${error}`);
@@ -147,15 +150,20 @@ const searchByName = asyncHandler(async (req , res) => {
 // Function to search users by phone number
 const searchByNumber = asyncHandler(async (req, res) => {
    try {
+
+      // extract phone number from query parameters and user phone number from req.user
       const { phoneNumber } = req.query;
       const searchingUserPhoneNumber = req.user.phoneNumber;
 
+      // search for users by phone number in the database
       const users = await db.searchByNumber(phoneNumber, searchingUserPhoneNumber);
 
+      // if no users found, return error
       if (!users || users.length === 0) {
          return res.status(404).json(new ApiError(404, 'User not found with this phone number'));
       }
 
+      // return success response with the found users
       return res.status(200).json(new ApiResponse(200, users, 'Users found successfully with the given phone number'));
    } catch (error) {
       console.error(`Error searching user by number ${error}`);

@@ -2,13 +2,19 @@ import { Spam, User, Contact } from '../models/index.js';
 import { Op } from 'sequelize';
 
 const db = {
+
+   // function to check if phone number is already registered in the database
    checkUserPhoneExists: async (phoneNumber) => {
       try {
+
+         // check if user with the phone number exists in the database
          const user = await User.findOne({
             where: {
                phoneNumber,
             },
          });
+
+         // return the user, if exists, user details will be returned, otherwise null
          return user;
       } catch (error) {
          console.error(`Error searching user with phone number : ${error}`);
@@ -16,8 +22,11 @@ const db = {
       }
    },
 
+   // function to register a user in the database
    registerUser: async (name, phoneNumber, email, password) => {
       try {
+
+         // register user in the database
          const user = await User.create({
             name: name,
             phoneNumber,
@@ -25,6 +34,7 @@ const db = {
             password,
          });
 
+         // return the user details
          return user;
       } catch (error) {
          console.error(`Error in registering user ${error}`);
@@ -32,8 +42,11 @@ const db = {
       }
    },
 
+   // function to verify user password and return user details
    verifyPassword: async (phoneNumber, password) => {
       try {
+
+         // check if user with the phone number exists in the database
          const user = await User.findOne({
             where: {
                phoneNumber,
@@ -44,11 +57,15 @@ const db = {
             return null;
          }
 
+         // check if the password is valid
          const isPasswordValid = await user.validPassword(password);
+
+         // if password is not valid, return null
          if (!isPasswordValid) {
             return null;
          }
 
+         // if password is valid, return user details
          return user;
       } catch (error) {
          console.error(`Error logging in user ${error}`);
@@ -56,14 +73,19 @@ const db = {
       }
    },
 
+   // function to check if a user has reported a spam number in the database
    isReportedSpam: async (userId, phoneNumber) => {
       try {
+
+         // check if the user has reported the phone number as spam
          const spam = await Spam.count({
             where: {
                userId,
                spamNumber: phoneNumber,
             },
          });
+
+         // return true if spam count is greater than 0, otherwise false
          return spam > 0;
       } catch (error) {
          console.error(`Error checking spam report ${error}`);
@@ -71,8 +93,11 @@ const db = {
       }
    },
 
+   // function to report a spam number in the database
    reportSpam: async (userId, phoneNumber) => {
       try {
+
+         // mark the phone number as spam in the database by userId
          await Spam.create({
             userId,
             spamNumber: phoneNumber,
@@ -84,6 +109,7 @@ const db = {
       }
    },
 
+   // function to search users by name in the database
    searchByName: async (name, userId) => {
       try {
          // search registered users starting with the name
@@ -143,6 +169,7 @@ const db = {
       }
    },
 
+   // function to search users by phone number in the database
    searchByNumber: async (phoneNumber, searchingUserPhoneNumber) => {
       try {
          

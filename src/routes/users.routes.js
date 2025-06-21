@@ -13,8 +13,6 @@ import {
    searchByNumber,
 } from '../controllers/users.controllers.js';
 
-router.delete('/emptydb', emptyDb);
-
 // route to register a user
 router.post(
    '/register',
