@@ -130,7 +130,7 @@ Example Response:
 ### ☎️ Search by Number
 
 - **Endpoint**: `GET /search-by-number`  
-- **Access**: Public  
+- **Access**: Protected (requires valid accessToken cookie)  
 - **Query Parameter**:  ?phoneNumber=<string>
 
 **Example Request**: GET /search-by-number?phoneNumber=9742137422
