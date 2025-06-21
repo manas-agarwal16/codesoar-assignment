@@ -95,7 +95,7 @@ Example Response:
 - **Access**: Protected (requires valid `accessToken` cookie)  
 - **Query Parameter**: ?name=<searchString>
 
-**Example Request**: "a"
+**Example Request**: GET /search-by-name?name="a"
 
 **Example Response**:
 
