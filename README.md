@@ -43,19 +43,19 @@ Example Response:
 }
 ```
 
-2. Login
-Endpoint: POST /login
+### 🔑 Login
 
-Access: Public
+- **Endpoint**: `POST /login`  
+- **Access**: Public  
 
-Request Body:
-
+**Request Body**:
 ```json
 {
   "phoneNumber": "9876543210",
   "password": "yourPassword123"
 }
 ```
+
 Example Response:
 
 ```json
@@ -67,13 +67,12 @@ Example Response:
 }
 ```
 
-3. Report Spam
-Endpoint: POST /report-spam
+### 🚫 Report Spam
 
-Access: Protected (requires valid accessToken cookie)
+- **Endpoint**: `POST /report-spam`  
+- **Access**: Protected (requires valid `accessToken` cookie)  
 
-Request Body:
-
+**Request Body**:
 ```json
 {
   "phoneNumber": "9876543210"
@@ -90,18 +89,15 @@ Example Response:
 }
 ```
 
-4. Search by Name
-Endpoint: GET /search-by-name
+### 🔍 Search by Name
 
-Access: Protected (requires valid accessToken cookie)
+- **Endpoint**: `GET /search-by-name`  
+- **Access**: Protected (requires valid `accessToken` cookie)  
+- **Query Parameter**: ?name=<searchString>
 
-Query Parameter: ?name=<searchString>
+**Example Request**: "a"
 
-Example Request:
-
-pgsql
-GET /search-by-name?name=Amanda
-Example Response:
+**Example Response**:
 
 ```json
 {
@@ -131,19 +127,15 @@ Example Response:
 }
 ```
 
-5. Search by Number
-Endpoint: GET /search-by-number
+### ☎️ Search by Number
 
-Access: Public
+- **Endpoint**: `GET /search-by-number`  
+- **Access**: Public  
+- **Query Parameter**:  ?phoneNumber=<string>
 
-Query Parameter: ?phoneNumber=<number>
+**Example Request**: GET /search-by-number?phoneNumber=9742137422
 
-Example Request:
-
-pgsql
-GET /search-by-number?phoneNumber=9742137422
-Example Response:
-
+**Example Response**:
 ```json
 {
   "status": 200,
@@ -160,28 +152,34 @@ Example Response:
 }
 ```
 
-🚀 Running Locally
-Clone the repository
+## 🚀 Running Locally
 
-git clone [https://github.com/your-username/your-repo.git](https://github.com/manas-agarwal16/codesoar-assignment)
+### 1. Clone the repository
+```bash
+git clone https://github.com/manas-agarwal16/codesoar-assignment.git
 cd codesoar-assignment
-Install dependencies
+```
 
+### 2. Install dependencies
+```bash
 npm install
-Create a .env file in the root directory with the following variables:
+```
 
+### 3. Create a .env file in the root directory with the following variables:
+
+```bash
 PORT=
 DATABASE_URL=''
 ACCESSTOKEN_PRIVATE_KEY=''
 REFRESHTOKEN_PRIVATE_KEY=''
 CORS_ORIGIN=''
+```
 
-Start the server
-
+### 4. Start the server
+```bash
 npm start
-
-Verify root route (optional):
-A simple GET / returns a JSON welcome message indicating this service is implemented by Manas Agarwal as part of the assignment.
+```
 
 📞 Contact
-For any queries or feedback regarding this assignment implementation, reach out to Manas Agarwal.
+Email : manas.agarwal1604@gmail.com
+phone : 8279653442
