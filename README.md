@@ -181,5 +181,7 @@ npm start
 ```
 
 ### 📞 Contact
-** Email **: manas.agarwal1604@gmail.com
-** phone **: 8279653442
+
+- **Email**: [manas.agarwal1604@gmail.com](mailto:manas.agarwal1604@gmail.com)  
+- **Phone**: +91 82796 53442
+
