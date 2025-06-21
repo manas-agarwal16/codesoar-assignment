@@ -5,7 +5,6 @@ import validationRules from '../utils/validationRules.js';
 const router = express.Router();
 
 import {
-   emptyDb,
    login,
    register,
    reportSpam,

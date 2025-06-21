@@ -171,4 +171,4 @@ const searchByNumber = asyncHandler(async (req, res) => {
    }
 });
 
-export { register, login, emptyDb, reportSpam, searchByName, searchByNumber };
+export { register, login, reportSpam, searchByName, searchByNumber };
